@@ -6,6 +6,12 @@ import { useCallback } from 'react';
 import LoginScreen from './App/Screen/LoginScreen/LoginScreen';
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
+import TabNavigation from './App/Navigations/TabNavigation';
+import { NavigationContainer } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import * as Location from 'expo-location';
+import { UserLocationContext } from './App/Context/UserLocationContext';
+
 SplashScreen.preventAutoHideAsync();
 /*
 *methodes async getToken =>recupère un jeton à partir du stockage sécurisé 
@@ -38,6 +44,32 @@ export default function App() {
  
   });
 
+
+  const [location, setLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location.coords);
+      
+    })();
+  }, []);
+
+  let text = 'Waiting..';
+  if (errorMsg) {
+    text = errorMsg;
+  } else if (location) {
+    text = JSON.stringify(location);
+  }
+
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
       await SplashScreen.hideAsync();
@@ -51,10 +83,16 @@ export default function App() {
     <ClerkProvider 
     tokenCache={tokenCache}
     publishableKey={'pk_test_d2hvbGUtc2hlZXBkb2ctODQuY2xlcmsuYWNjb3VudHMuZGV2JA'}>
+      <UserLocationContext.Provider value={{location,setLocation}}>
+   
+
    
     <View style={styles.container} onLayout={onLayoutRootView}>
     <SignedIn>
-          <Text>You are Signed in</Text>
+         <NavigationContainer>
+          <TabNavigation/>
+
+         </NavigationContainer>
         </SignedIn>
         <SignedOut>
         <LoginScreen/>
@@ -62,7 +100,7 @@ export default function App() {
   
     <StatusBar style="auto" />
     </View>
- 
+    </UserLocationContext.Provider>
     </ClerkProvider>
  );
 }
