@@ -12,7 +12,7 @@ export default function searchBar() {
         console.log(data, details);
       }}
       query={{
-        key: 'AIzaSyDaNDDG-wpNm-n3TefWbzOhWSfnwdLV8Hk',
+        key: '',
         language: 'en',
       }}
     />
